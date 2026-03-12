@@ -3,51 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Analista Apuestas</title>
-    
+    <title>Sistema Profesional de Apuestas V4.2</title>
+
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#107c41">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Apuestas EV">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/8706/8706173.png">
-    
+
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 10px; background-color: #f3f2f1; color: #333; margin: 0; }
-        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        h2 { color: #107c41; margin-top: 0; padding-bottom: 10px; font-size: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f3f2f1; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h2 { color: #107c41; margin-top: 0; padding-bottom: 10px; }
         
         /* Sistema de Pestañas */
-        .tabs { display: flex; border-bottom: 2px solid #107c41; margin-bottom: 15px; }
-        .tab-btn { background-color: #f8f9fa; border: none; padding: 10px 15px; font-size: 14px; cursor: pointer; font-weight: bold; color: #555; transition: 0.3s; border-radius: 6px 6px 0 0; flex-grow: 1; text-align: center; }
+        .tabs { display: flex; border-bottom: 2px solid #107c41; margin-bottom: 20px; }
+        .tab-btn { background-color: #f8f9fa; border: none; padding: 12px 24px; font-size: 16px; cursor: pointer; font-weight: bold; color: #555; transition: 0.3s; border-radius: 6px 6px 0 0; }
+        .tab-btn:hover { background-color: #e9ecef; }
         .tab-btn.active { background-color: #107c41; color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        .panel { background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 6px; margin-bottom: 15px; }
-        .grid-2col { display: grid; grid-template-columns: 1fr; gap: 15px; }
-        @media (min-width: 768px) { .grid-2col { grid-template-columns: 1fr 1fr; } }
-        
+        .panel { background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .input-group { display: flex; flex-direction: column; margin-bottom: 10px; }
-        label { font-weight: bold; margin-bottom: 5px; font-size: 13px; }
-        input[type="text"], input[type="number"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
-        textarea { width: 100%; height: 120px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: vertical; box-sizing: border-box; font-family: monospace; font-size: 12px; }
+        label { font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        input[type="text"], input[type="number"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        textarea { width: 100%; height: 200px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: vertical; box-sizing: border-box; font-family: monospace; }
         
-        button { font-size: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; padding: 12px; border: none; }
-        button.btn-primary { background-color: #107c41; color: white; margin-top: 10px; }
-        button.btn-success { background-color: #28a745; color: white; margin-top: 10px; }
-        button.btn-danger { background-color: #dc3545; color: white; }
-        button.btn-info { background-color: #0078d4; color: white; margin-bottom: 5px; }
-        button.btn-secondary { background-color: #6c757d; color: white; margin-top: 10px; }
+        button.btn-primary { background-color: #107c41; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
+        button.btn-primary:hover { background-color: #0c5e31; }
+        button.btn-success { background-color: #28a745; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 15px; transition: 0.3s; }
+        button.btn-success:hover { background-color: #218838; }
+        button.btn-danger { background-color: #dc3545; color: white; border: none; padding: 6px 12px; font-size: 13px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button.btn-danger:hover { background-color: #c82333; }
+        button.btn-info { background-color: #0078d4; color: white; border: none; padding: 6px 12px; font-size: 13px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; margin-right: 5px; }
+        button.btn-info:hover { background-color: #005a9e; }
+        button.btn-secondary { background-color: #6c757d; color: white; border: none; padding: 10px 20px; font-size: 14px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; margin-top: 10px; }
+        button.btn-secondary:hover { background-color: #5a6268; }
         
         /* Dashboard */
-        .dashboard { display: none; margin-top: 15px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
+        .dashboard { display: none; margin-top: 20px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
         .stat-card { background: white; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: hidden; }
-        .card-header { background-color: #e9ecef; padding: 10px; border-bottom: 1px solid #ccc; text-align: center; }
-        .card-header h3 { margin: 0; font-size: 15px; color: #333; }
+        .card-header { background-color: #e9ecef; padding: 10px 15px; border-bottom: 1px solid #ccc; text-align: center; }
+        .card-header h3 { margin: 0; font-size: 16px; color: #333; }
         .card-body { padding: 15px; text-align: center; }
-        .card-footer { background-color: #f8f9fa; padding: 10px; border-top: 1px dashed #ccc; font-size: 12px; display: flex; justify-content: space-between; }
+        .card-footer { background-color: #f8f9fa; padding: 10px; border-top: 1px dashed #ccc; font-size: 13px; display: flex; justify-content: space-between; }
         
         .value-positive { color: white; background-color: #28a745; padding: 6px; border-radius: 4px; font-weight: bold; display: block; margin-top: 10px; }
         .value-negative { color: white; background-color: #dc3545; padding: 6px; border-radius: 4px; font-weight: bold; display: block; margin-top: 10px; }
@@ -55,75 +58,91 @@
         .highlight { color: #107c41; font-weight: bold; }
         .split-stat { display: flex; flex-direction: column; align-items: center; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
-        th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
         th { background-color: #bdd7ee; color: black; font-weight: bold; }
         .table-container { overflow-x: auto; max-height: 500px; }
 
-        /* Modal */
+        /* Modal (Ventana Emergente) */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
-        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 15px; border: 1px solid #888; width: 95%; max-width: 500px; border-radius: 8px; }
-        .close { color: #aaa; float: right; font-size: 24px; font-weight: bold; cursor: pointer; }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 90%; max-width: 800px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close:hover, .close:focus { color: black; text-decoration: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>⚽ Analista EV</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>⚽ Sistema Profesional de Apuestas V4.2</h2>
+    </div>
 
     <div class="tabs">
-        <button type="button" class="tab-btn active" onclick="cambiarPestana('analizar')">🔍 Analizar</button>
-        <button type="button" class="tab-btn" onclick="cambiarPestana('basedatos')">💾 Base Datos</button>
+        <button type="button" class="tab-btn active" onclick="cambiarPestana('analizar')">🔍 Analizar Jugador</button>
+        <button type="button" class="tab-btn" onclick="cambiarPestana('basedatos')">💾 Mi Base de Datos</button>
     </div>
 
     <div id="analizar" class="tab-content active">
         <div class="grid-2col">
             <div class="panel">
-                <h3>1. Datos</h3>
+                <h3>1. Datos del Jugador</h3>
                 <div class="input-group">
-                    <input type="text" id="equipoPropio" placeholder="Tu Equipo (Ej: Liverpool)">
+                    <label>Equipo (Tuyo):</label>
+                    <input type="text" id="equipoPropio" placeholder="Ej: Liverpool">
                 </div>
-                <textarea id="textoBruto" placeholder="Pega Sofascore aquí..."></textarea>
+                <label>Texto de Sofascore (Desde el nombre del jugador):</label>
+                <textarea id="textoBruto" placeholder="Pegá acá todas las estadísticas..."></textarea>
                 <button type="button" class="btn-secondary" onclick="limpiarFormulario()">🧹 Limpiar Todo</button>
             </div>
 
             <div class="panel">
-                <h3>2. Cuotas</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="input-group"><label>1+ Remates Arco</label><input type="number" id="cuota1SOT" step="0.01"></div>
-                    <div class="input-group"><label>2+ Remates Arco</label><input type="number" id="cuota2SOT" step="0.01"></div>
-                    <div class="input-group"><label>1+ Falta Com.</label><input type="number" id="cuota1FC" step="0.01"></div>
-                    <div class="input-group"><label>1+ Falta Rec.</label><input type="number" id="cuota1FR" step="0.01"></div>
+                <h3>2. Cuotas de la Casa (Opcional)</h3>
+                <div class="grid-2col">
+                    <div class="input-group"><label>1+ Remates Arco:</label><input type="number" id="cuota1SOT" step="0.01"></div>
+                    <div class="input-group"><label>2+ Remates Arco:</label><input type="number" id="cuota2SOT" step="0.01"></div>
+                    <div class="input-group"><label>1+ Falta Cometida:</label><input type="number" id="cuota1FC" step="0.01"></div>
+                    <div class="input-group"><label>1+ Falta Recibida:</label><input type="number" id="cuota1FR" step="0.01"></div>
                 </div>
-                <button type="button" class="btn-primary" onclick="procesarDatosYCalcular()">⚡ Analizar</button>
+                <br>
+                <button type="button" class="btn-primary" onclick="procesarDatosYCalcular()">⚡ Analizar Datos Completos</button>
             </div>
         </div>
 
         <div id="dashboard" class="dashboard">
-            <div class="panel" style="background-color: #e5f0d3; padding: 10px; margin-bottom: 15px;">
-                <h3 style="margin: 0;"><span id="nombreJugadorTitulo" class="highlight"></span></h3>
-                <p style="margin: 5px 0 0 0; font-size: 13px;">Partidos: <strong id="totalPartidos">0</strong></p>
-                <button type="button" class="btn-success" id="btnGuardarBD" onclick="guardarEnBaseDeDatos()">💾 Guardar Jugador</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; background-color: #e5f0d3; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <div>
+                    <h2 style="margin: 0;">Análisis: <span id="nombreJugadorTitulo" class="highlight"></span></h2>
+                    <p style="margin: 5px 0 0 0;">Muestra total: <strong id="totalPartidos">0</strong> partidos.</p>
+                </div>
+                <button type="button" class="btn-success" id="btnGuardarBD" onclick="guardarEnBaseDeDatos()">💾 Guardar Jugador en BD</button>
             </div>
+            
             <div class="stats-grid" id="contenedorTarjetas"></div>
         </div>
     </div>
 
     <div id="basedatos" class="tab-content">
-        <button type="button" class="btn-danger" style="width: auto; padding: 8px 15px; margin-bottom: 10px;" onclick="limpiarBaseDatos()">🗑️ Borrar Toda la Base</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3>Jugadores Guardados (Tabla Consolidada)</h3>
+            <button type="button" class="btn-danger" onclick="limpiarBaseDatos()">🗑️ Borrar Toda la Base</button>
+        </div>
+        
         <div class="table-container">
             <table id="tablaBD">
                 <thead>
                     <tr>
                         <th>Jugador</th>
-                        <th>1+ SOT</th>
-                        <th>2+ SOT</th>
-                        <th>1+ F.Com</th>
-                        <th>1+ F.Rec</th>
-                        <th>Acción</th>
+                        <th>Equipo</th>
+                        <th>Partidos</th>
+                        <th>1+ Remate Arco</th>
+                        <th>2+ Remates Arco</th>
+                        <th>1+ Falta Com.</th>
+                        <th>1+ Falta Rec.</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody>
+                    </tbody>
             </table>
         </div>
     </div>
@@ -132,13 +151,21 @@
 <div id="modalPartidos" class="modal">
     <div class="modal-content">
         <span class="close" onclick="cerrarModal()">&times;</span>
-        <h3 style="color: #107c41; margin-top: 0; font-size: 16px;"><span id="modalNombreJugador"></span></h3>
+        <h2 style="color: #107c41; margin-top: 0;">Historial de Partidos: <span id="modalNombreJugador"></span></h2>
         <div class="table-container">
             <table id="tablaModalPartidos">
                 <thead>
-                    <tr><th>Rival</th><th>C.</th><th>SOT</th><th>FC</th><th>FR</th></tr>
+                    <tr>
+                        <th>Rival</th>
+                        <th>Condición</th>
+                        <th>Remates Totales</th>
+                        <th>Remates al Arco</th>
+                        <th>Faltas Cometidas</th>
+                        <th>Faltas Recibidas</th>
+                    </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody>
+                    </tbody>
             </table>
         </div>
     </div>
@@ -152,6 +179,7 @@
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         event.target.classList.add('active');
+        
         if(id === 'basedatos') cargarBaseDatos();
     }
 
@@ -164,7 +192,7 @@
         document.getElementById("cuota1FR").value = "";
         document.getElementById("dashboard").style.display = "none";
         jugadorActualParaBD = null;
-        alert("🧹 Limpiado");
+        alert("🧹 ¡Todos los campos han sido limpiados!");
     }
 
     function buscarValor(lineas, etiqueta, valorPorDefecto = "0") {
@@ -179,8 +207,8 @@
     const mercados = [
         { id: '1SOT', titulo: '1+ Remate Arco', umbral: 1, tipo: 'rArco' },
         { id: '2SOT', titulo: '2+ Remates Arco', umbral: 2, tipo: 'rArco' },
-        { id: '1FC', titulo: '1+ Falta Com.', umbral: 1, tipo: 'fCometidas' },
-        { id: '1FR', titulo: '1+ Falta Rec.', umbral: 1, tipo: 'fRecibidas' }
+        { id: '1FC', titulo: '1+ Falta Cometida', umbral: 1, tipo: 'fCometidas' },
+        { id: '1FR', titulo: '1+ Falta Recibida', umbral: 1, tipo: 'fRecibidas' }
     ];
 
     function procesarDatosYCalcular() {
@@ -188,7 +216,7 @@
         const textoTotal = document.getElementById("textoBruto").value;
         const lineasTotales = textoTotal.split('\n').map(l => l.trim()).filter(l => l.length > 0);
         
-        if (lineasTotales.length < 5) return alert("Faltan datos.");
+        if (lineasTotales.length < 5) return alert("⚠️ Faltan datos de Sofascore.");
 
         const nombreJugadorCorte = lineasTotales[0].trim();
         document.getElementById("nombreJugadorTitulo").innerText = nombreJugadorCorte;
@@ -210,8 +238,8 @@
         bloques.forEach(lineas => {
             if (lineas.length < 5) return; 
             let partidoStr = lineas.find(l => l.includes(" - ")) || "";
-            let condicion = "L";
-            let rival = "Rival";
+            let condicion = "local";
+            let rival = "Desconocido";
             
             if (partidoStr && equipoPropio) {
                 let eq = partidoStr.replace(/[0-9]+/g, '').split('-');
@@ -219,9 +247,11 @@
                     let equipoA = eq[0].trim();
                     let equipoB = eq[1].trim();
                     if(equipoA.toLowerCase().includes(equipoPropio.toLowerCase())) {
-                        condicion = "L"; rival = equipoB;
+                        condicion = "local";
+                        rival = equipoB;
                     } else {
-                        condicion = "V"; rival = equipoA;
+                        condicion = "visitante";
+                        rival = equipoA;
                     }
                 }
             }
@@ -243,17 +273,22 @@
         contenedor.innerHTML = "";
         
         jugadorActualParaBD = {
-            nombre: nombreJugadorCorte, equipo: equipoPropio || "N/A", partidosTotal: partidos.length, historial: partidos, prob_1SOT: 0, prob_2SOT: 0, prob_1FC: 0, prob_1FR: 0
+            nombre: nombreJugadorCorte,
+            equipo: equipoPropio || "N/A",
+            partidosTotal: partidos.length,
+            historial: partidos, 
+            prob_1SOT: 0, prob_2SOT: 0, prob_1FC: 0, prob_1FR: 0
         };
 
         mercados.forEach(m => {
             let aciertosGlobal = partidos.filter(p => p[m.tipo] >= m.umbral).length;
             let probGlobal = aciertosGlobal / partidos.length;
+            
             jugadorActualParaBD[`prob_${m.id}`] = probGlobal;
 
-            let pLocal = partidos.filter(p => p.condicion === 'L');
+            let pLocal = partidos.filter(p => p.condicion === 'local');
             let probLocal = pLocal.length ? (pLocal.filter(p => p[m.tipo] >= m.umbral).length / pLocal.length) : 0;
-            let pVisita = partidos.filter(p => p.condicion === 'V');
+            let pVisita = partidos.filter(p => p.condicion === 'visitante');
             let probVisita = pVisita.length ? (pVisita.filter(p => p[m.tipo] >= m.umbral).length / pVisita.length) : 0;
             let pUltimos5 = partidos.slice(0, 5);
             let probU5 = pUltimos5.length ? (pUltimos5.filter(p => p[m.tipo] >= m.umbral).length / pUltimos5.length) : 0;
@@ -269,9 +304,9 @@
                 valor = probGlobal - probCasa;
                 
                 if (valor > 0) {
-                    valorHTML = `<div class="value-positive">🔥 +${(valor * 100).toFixed(1)}% EV</div>`;
+                    valorHTML = `<div class="value-positive">🔥 ¡VALOR! +${(valor * 100).toFixed(1)}% EV</div>`;
                 } else {
-                    valorHTML = `<div class="value-negative">❌ No Bet (${(valor * 100).toFixed(1)}%)</div>`;
+                    valorHTML = `<div class="value-negative">❌ No Bet (${(valor * 100).toFixed(1)}% EV)</div>`;
                 }
             }
 
@@ -279,14 +314,14 @@
                 <div class="stat-card">
                     <div class="card-header"><h3>${m.titulo}</h3></div>
                     <div class="card-body">
-                        <p style="font-size: 16px; margin: 0;">Real: <strong class="highlight">${(probGlobal * 100).toFixed(1)}%</strong></p>
-                        <p style="margin: 5px 0; color: #666; font-size: 13px;">Casa: ${probCasaTexto}</p>
+                        <p style="font-size: 18px; margin: 0;">Prob. Real: <strong class="highlight">${(probGlobal * 100).toFixed(1)}%</strong></p>
+                        <p style="margin: 5px 0; color: #666;">Prob. Casa: ${probCasaTexto}</p>
                         ${valorHTML}
                     </div>
                     <div class="card-footer">
-                        <div class="split-stat"><span>Últ 5</span><strong>${(probU5 * 100).toFixed(0)}%</strong></div>
-                        <div class="split-stat"><span>Loc</span><strong>${(probLocal * 100).toFixed(0)}%</strong></div>
-                        <div class="split-stat"><span>Vis</span><strong>${(probVisita * 100).toFixed(0)}%</strong></div>
+                        <div class="split-stat"><span>Últimos 5</span><strong>${(probU5 * 100).toFixed(0)}%</strong></div>
+                        <div class="split-stat"><span>Local</span><strong>${(probLocal * 100).toFixed(0)}%</strong></div>
+                        <div class="split-stat"><span>Visita</span><strong>${(probVisita * 100).toFixed(0)}%</strong></div>
                     </div>
                 </div>
             `);
@@ -297,22 +332,36 @@
 
     function guardarEnBaseDeDatos() {
         if (!jugadorActualParaBD) return;
+
         let bd = JSON.parse(localStorage.getItem('bdApuestas')) || [];
+        
         let index = bd.findIndex(j => j.nombre === jugadorActualParaBD.nombre);
-        if (index !== -1) { bd[index] = jugadorActualParaBD; } else { bd.push(jugadorActualParaBD); }
+        if (index !== -1) {
+            bd[index] = jugadorActualParaBD; // Actualiza
+        } else {
+            bd.push(jugadorActualParaBD); // Crea nuevo
+        }
+
         localStorage.setItem('bdApuestas', JSON.stringify(bd));
         
         let btn = document.getElementById('btnGuardarBD');
-        btn.innerText = "✅ Guardado";
+        btn.innerText = "✅ ¡Jugador Guardado!";
         btn.style.backgroundColor = "#1e7e34";
-        setTimeout(() => { btn.innerText = "💾 Guardar Jugador"; btn.style.backgroundColor = "#28a745"; }, 2000);
+        setTimeout(() => {
+            btn.innerText = "💾 Guardar Jugador en BD";
+            btn.style.backgroundColor = "#28a745";
+        }, 2000);
     }
 
     function cargarBaseDatos() {
         let bd = JSON.parse(localStorage.getItem('bdApuestas')) || [];
         const tbody = document.querySelector("#tablaBD tbody");
         tbody.innerHTML = "";
-        if (bd.length === 0) { return tbody.innerHTML = "<tr><td colspan='6'>Base vacía.</td></tr>"; }
+
+        if (bd.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='8'>No hay jugadores guardados todavía. Ve a la pestaña de análisis para agregar uno.</td></tr>";
+            return;
+        }
 
         bd.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
@@ -320,12 +369,14 @@
             tbody.insertAdjacentHTML('beforeend', `
                 <tr>
                     <td style="font-weight: bold; text-align: left;">${j.nombre}</td>
-                    <td style="background-color: ${j.prob_1SOT > 0.6 ? '#e5f0d3' : 'transparent'}">${(j.prob_1SOT * 100).toFixed(0)}%</td>
-                    <td>${(j.prob_2SOT * 100).toFixed(0)}%</td>
-                    <td style="background-color: ${j.prob_1FC > 0.6 ? '#e5f0d3' : 'transparent'}">${(j.prob_1FC * 100).toFixed(0)}%</td>
-                    <td style="background-color: ${j.prob_1FR > 0.6 ? '#e5f0d3' : 'transparent'}">${(j.prob_1FR * 100).toFixed(0)}%</td>
-                    <td>
-                        <button type="button" class="btn-info" onclick="verHistorial(${index})">📋</button>
+                    <td>${j.equipo}</td>
+                    <td>${j.partidosTotal || j.partidos}</td>
+                    <td style="background-color: ${j.prob_1SOT > 0.6 ? '#e5f0d3' : 'transparent'}">${(j.prob_1SOT * 100).toFixed(1)}%</td>
+                    <td>${(j.prob_2SOT * 100).toFixed(1)}%</td>
+                    <td style="background-color: ${j.prob_1FC > 0.6 ? '#e5f0d3' : 'transparent'}">${(j.prob_1FC * 100).toFixed(1)}%</td>
+                    <td style="background-color: ${j.prob_1FR > 0.6 ? '#e5f0d3' : 'transparent'}">${(j.prob_1FR * 100).toFixed(1)}%</td>
+                    <td style="min-width: 120px;">
+                        <button type="button" class="btn-info" onclick="verHistorial(${index})">📋 Detalles</button>
                         <button type="button" class="btn-danger" onclick="borrarJugador(${index})">X</button>
                     </td>
                 </tr>
@@ -336,17 +387,23 @@
     function verHistorial(index) {
         let bd = JSON.parse(localStorage.getItem('bdApuestas')) || [];
         let jugador = bd[index];
-        if (!jugador.historial) return alert("Actualiza este jugador primero.");
+
+        if (!jugador.historial) {
+            alert("⚠️ Este jugador fue guardado en una versión anterior. Por favor, vuelve a analizar sus datos en la pestaña principal para actualizar su historial.");
+            return;
+        }
 
         document.getElementById("modalNombreJugador").innerText = jugador.nombre;
+        
         const tbodyModal = document.querySelector("#tablaModalPartidos tbody");
         tbodyModal.innerHTML = "";
 
         jugador.historial.forEach(p => {
             tbodyModal.insertAdjacentHTML('beforeend', `
                 <tr>
-                    <td style="text-align:left; font-size:11px;">${p.rival.substring(0,12)}</td>
-                    <td>${p.condicion}</td>
+                    <td>${p.rival}</td>
+                    <td><span style="background-color: ${p.condicion === 'local' ? '#e5f0d3' : '#f8f9fa'}; padding: 3px 8px; border-radius: 4px;">${p.condicion}</span></td>
+                    <td>${p.rTotales}</td>
                     <td style="font-weight: bold;">${p.rArco}</td>
                     <td>${p.fCometidas}</td>
                     <td>${p.fRecibidas}</td>
@@ -357,20 +414,33 @@
         document.getElementById("modalPartidos").style.display = "block";
     }
 
-    function cerrarModal() { document.getElementById("modalPartidos").style.display = "none"; }
-    window.onclick = function(event) { let modal = document.getElementById("modalPartidos"); if (event.target == modal) { modal.style.display = "none"; } }
+    function cerrarModal() {
+        document.getElementById("modalPartidos").style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        let modal = document.getElementById("modalPartidos");
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
 
     function borrarJugador(index) {
-        if(confirm("¿Borrar?")) {
+        if(confirm("¿Borrar este jugador de tu base de datos?")) {
             let bd = JSON.parse(localStorage.getItem('bdApuestas')) || [];
             bd.splice(index, 1);
             localStorage.setItem('bdApuestas', JSON.stringify(bd));
             cargarBaseDatos();
         }
     }
+
     function limpiarBaseDatos() {
-        if(confirm("¿BORRAR TODO?")) { localStorage.removeItem('bdApuestas'); cargarBaseDatos(); }
+        if(confirm("⚠️ ¿Estás seguro de que quieres BORRAR TODA tu base de datos? Esto no se puede deshacer.")) {
+            localStorage.removeItem('bdApuestas');
+            cargarBaseDatos();
+        }
     }
 </script>
+
 </body>
 </html>
