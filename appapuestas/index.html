@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema Profesional de Apuestas V4.2</title>
+    <title>Sistema Profesional de Apuestas V4.4</title>
 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#107c41">
@@ -40,6 +40,10 @@
         button.btn-danger:hover { background-color: #c82333; }
         button.btn-info { background-color: #0078d4; color: white; border: none; padding: 6px 12px; font-size: 13px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; margin-right: 5px; }
         button.btn-info:hover { background-color: #005a9e; }
+        /* Botón Amarillo agregado */
+        button.btn-warning { background-color: #ffc107; color: #212529; border: none; padding: 6px 12px; font-size: 13px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; margin-right: 5px; }
+        button.btn-warning:hover { background-color: #e0a800; }
+        
         button.btn-secondary { background-color: #6c757d; color: white; border: none; padding: 10px 20px; font-size: 14px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; margin-top: 10px; }
         button.btn-secondary:hover { background-color: #5a6268; }
         
@@ -74,7 +78,7 @@
 
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2>⚽ Sistema Profesional de Apuestas V4.2</h2>
+        <h2>⚽ Sistema Profesional de Apuestas V4.4</h2>
     </div>
 
     <div class="tabs">
@@ -174,11 +178,12 @@
 <script>
     let jugadorActualParaBD = null;
 
+    // Control de pestañas corregido para evitar errores de "event"
     function cambiarPestana(id) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        event.target.classList.add('active');
+        document.querySelector(`button[onclick="cambiarPestana('${id}')"]`).classList.add('active');
         
         if(id === 'basedatos') cargarBaseDatos();
     }
@@ -272,11 +277,13 @@
         const contenedor = document.getElementById("contenedorTarjetas");
         contenedor.innerHTML = "";
         
+        // AGREGADO: Guardamos el texto bruto
         jugadorActualParaBD = {
             nombre: nombreJugadorCorte,
             equipo: equipoPropio || "N/A",
             partidosTotal: partidos.length,
             historial: partidos, 
+            textoBruto: textoTotal, // El choclo de texto
             prob_1SOT: 0, prob_2SOT: 0, prob_1FC: 0, prob_1FR: 0
         };
 
@@ -366,6 +373,7 @@
         bd.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
         bd.forEach((j, index) => {
+            // AGREGADO: El botón "🔄 Texto" está de vuelta
             tbody.insertAdjacentHTML('beforeend', `
                 <tr>
                     <td style="font-weight: bold; text-align: left;">${j.nombre}</td>
@@ -375,13 +383,33 @@
                     <td>${(j.prob_2SOT * 100).toFixed(1)}%</td>
                     <td style="background-color: ${j.prob_1FC > 0.6 ? '#e5f0d3' : 'transparent'}">${(j.prob_1FC * 100).toFixed(1)}%</td>
                     <td style="background-color: ${j.prob_1FR > 0.6 ? '#e5f0d3' : 'transparent'}">${(j.prob_1FR * 100).toFixed(1)}%</td>
-                    <td style="min-width: 120px;">
-                        <button type="button" class="btn-info" onclick="verHistorial(${index})">📋 Detalles</button>
-                        <button type="button" class="btn-danger" onclick="borrarJugador(${index})">X</button>
+                    <td style="min-width: 190px;">
+                        <button type="button" class="btn-info" title="Ver Partidos" onclick="verHistorial(${index})">📋</button>
+                        <button type="button" class="btn-warning" title="Recuperar texto" onclick="recuperarTextoBruto(${index})">🔄 Texto</button>
+                        <button type="button" class="btn-danger" title="Borrar" onclick="borrarJugador(${index})">X</button>
                     </td>
                 </tr>
             `);
         });
+    }
+
+    // AGREGADO: La función para recuperar el texto de la base de datos
+    function recuperarTextoBruto(index) {
+        let bd = JSON.parse(localStorage.getItem('bdApuestas')) || [];
+        let jugador = bd[index];
+
+        if (!jugador.textoBruto) {
+            alert("⚠️ Este jugador no tiene su texto original guardado. Vas a tener que ir a buscarlo a Sofascore otra vez.");
+            return;
+        }
+
+        cambiarPestana('analizar');
+
+        document.getElementById("equipoPropio").value = jugador.equipo === "N/A" ? "" : jugador.equipo;
+        document.getElementById("textoBruto").value = jugador.textoBruto;
+        document.getElementById("dashboard").style.display = "none";
+
+        alert(`✅ Se cargaron los datos crudos de ${jugador.nombre}.\n\nPara agregar nuevos partidos, pegalos arriba o abajo del texto que ya está en la caja, y dale a "Analizar Datos Completos".`);
     }
 
     function verHistorial(index) {
@@ -389,7 +417,7 @@
         let jugador = bd[index];
 
         if (!jugador.historial) {
-            alert("⚠️ Este jugador fue guardado en una versión anterior. Por favor, vuelve a analizar sus datos en la pestaña principal para actualizar su historial.");
+            alert("⚠️ Este jugador fue guardado en una versión anterior.");
             return;
         }
 
