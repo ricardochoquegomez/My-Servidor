@@ -1,0 +1,15 @@
+{
+  "name": "Analista de Apuestas EV",
+  "short_name": "ApuestasEV",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f3f2f1",
+  "theme_color": "#107c41",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/8706/8706173.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
