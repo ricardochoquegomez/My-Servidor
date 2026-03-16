@@ -68,11 +68,16 @@
         /* ESTILOS PARA SUGERENCIAS ALTERNATIVAS */
         .sugerencias-container { margin-top: 8px; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
         .badge-sugerencia { 
-            background: #e2e8f0; color: #334155; padding: 3px 8px; border-radius: 12px; 
-            font-size: 11px; font-weight: bold; cursor: pointer; border: 1px solid #cbd5e1; 
+            padding: 3px 8px; border-radius: 12px; 
+            font-size: 11px; font-weight: bold; cursor: pointer; border: 1px solid transparent; 
             transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
         }
-        .badge-sugerencia:hover { background: var(--azul-brinks); color: white; border-color: var(--azul-brinks); }
+        .badge-sugerencia:hover { filter: brightness(1.1); transform: scale(1.05); }
+        .sug-0 { background: #2e7d32; color: white; border-color: #1b5e20; } /* Verde - Muy probable */
+        .sug-1 { background: #fbc02d; color: #333; border-color: #f57f17; } /* Amarillo - Probable */
+        .sug-2 { background: #f57c00; color: white; border-color: #e65100; } /* Naranja - Menos probable */
+        .sug-3 { background: #d32f2f; color: white; border-color: #b71c1c; } /* Rojo - Lejana */
 
         /* ESTILOS PARA PROGRAMADO / NO PROGRAMADO */
         .badge-prog { background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; border: 1px solid #c8e6c9; display: inline-block; margin-top: 6px; }
@@ -380,6 +385,7 @@
                 filaHtml += `<td style="text-align:left;">${cliente.full}</td>`;
                 
                 let rutasSugeridasUnicas = new Set();
+                let rutasFrecuencia = {}; // CONTADOR DE TRABAJO EN LA ZONA
                 let esProgramado = false;
                 let numParadaProgramada = ""; 
                 let rutaId = "S/D";
@@ -412,10 +418,12 @@
 
                 // 2. Si no es programado, agregar la aprendida (si hay) como primera sugerencia
                 if (!esProgramado && rutasAprendidas[cliente.loc]) {
-                    rutasSugeridasUnicas.add(rutasAprendidas[cliente.loc].slice(-3));
+                    let rutaApr = rutasAprendidas[cliente.loc].slice(-3);
+                    rutasSugeridasUnicas.add(rutaApr);
+                    rutasFrecuencia[rutaApr] = 1000; // Prioridad máxima por ser asignación manual reciente
                 }
 
-                // 3. Buscar TODAS las rutas en la localidad
+                // 3. Buscar TODAS las rutas en la localidad y CONTAR su trabajo
                 if (!esProgramado) {
                     for (let i = 10; i < rutasDiaRaw.length; i++) {
                         let currentRuta = String(rutasDiaRaw[i][colRuta] || "").trim();
@@ -423,12 +431,17 @@
 
                         let contenido = rutasDiaRaw[i].join(" ").toLowerCase();
                         if (cliente.loc !== "" && contenido.includes(cliente.loc)) {
-                            rutasSugeridasUnicas.add(currentRuta.slice(-3));
+                            let rCorta = currentRuta.slice(-3);
+                            rutasSugeridasUnicas.add(rCorta);
+                            rutasFrecuencia[rCorta] = (rutasFrecuencia[rCorta] || 0) + 1; // Suma 1 parada en la zona
                         }
                     }
                 }
 
-                let arraySugerencias = Array.from(rutasSugeridasUnicas).slice(0, 4); // Tomar hasta 4 opciones
+                // ORDENAR LAS RUTAS SEGÚN LA CANTIDAD DE TRABAJO EN LA ZONA
+                let arraySugerencias = Array.from(rutasSugeridasUnicas);
+                arraySugerencias.sort((a, b) => (rutasFrecuencia[b] || 0) - (rutasFrecuencia[a] || 0));
+                arraySugerencias = arraySugerencias.slice(0, 4); // Tomar hasta 4 opciones
 
                 if (!esProgramado && arraySugerencias.length > 0) {
                     rutaId = arraySugerencias[0]; // La primera es la principal sugerida
@@ -436,12 +449,16 @@
 
                 let rutaCorta = (rutaId !== "S/D" && rutaId !== "") ? rutaId.slice(-3) : "";
 
-                // Generar HTML de Etiquetas sugeridas
+                // Generar HTML de Etiquetas sugeridas CON COLORES DE PRIORIDAD
                 let sugerenciasHtml = "";
                 if (arraySugerencias.length > 1 && !esProgramado) {
                     sugerenciasHtml += `<div class="sugerencias-container">`;
-                    arraySugerencias.forEach(rAlt => {
-                        sugerenciasHtml += `<span class="badge-sugerencia" title="Clic para seleccionar esta unidad" onclick="seleccionarSugerencia(this, '${rAlt}')">${rAlt}</span>`;
+                    let clasesColores = ['sug-0', 'sug-1', 'sug-2', 'sug-3'];
+                    
+                    arraySugerencias.forEach((rAlt, index) => {
+                        let claseColor = clasesColores[index] || 'sug-3';
+                        let descPrioridad = rutasFrecuencia[rAlt] >= 1000 ? "Asignada por vos hoy" : `${rutasFrecuencia[rAlt] || 0} paradas en esta zona`;
+                        sugerenciasHtml += `<span class="badge-sugerencia ${claseColor}" title="Prioridad ${index+1}: ${descPrioridad}. Clic para seleccionar." onclick="seleccionarSugerencia(this, '${rAlt}')">${rAlt}</span>`;
                     });
                     sugerenciasHtml += `</div>`;
                 }
