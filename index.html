@@ -65,6 +65,15 @@
             font-weight: 600;
         }
 
+        /* ESTILOS PARA SUGERENCIAS ALTERNATIVAS */
+        .sugerencias-container { margin-top: 8px; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+        .badge-sugerencia { 
+            background: #e2e8f0; color: #334155; padding: 3px 8px; border-radius: 12px; 
+            font-size: 11px; font-weight: bold; cursor: pointer; border: 1px solid #cbd5e1; 
+            transition: all 0.2s ease;
+        }
+        .badge-sugerencia:hover { background: var(--azul-brinks); color: white; border-color: var(--azul-brinks); }
+
         /* ESTILOS PARA PROGRAMADO / NO PROGRAMADO */
         .badge-prog { background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; border: 1px solid #c8e6c9; display: inline-block; margin-top: 6px; }
         .badge-noprog { background: #fff3e0; color: #e65100; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; border: 1px solid #ffe0b2; display: inline-block; margin-top: 6px; }
@@ -96,13 +105,11 @@
         <div class="card">
             <h3>1. Carga de Archivos</h3>
             
-            <!-- PANEL DE MEMORIA DE CLIENTES -->
             <div id="memoriaDbConfig" style="background:#e8f5e9; border: 1px solid #c8e6c9; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none;">
                 <span style="color:#2e7d32; font-weight:bold; font-size: 13px;" id="textoMemoria">✅ Base Clientes cargada (<span id="cantClientesMemoria">0</span>)</span>
                 <button class="btn-memoria" id="btnBorrarMemoria" onclick="borrarMemoria()">Borrar Memoria Local</button>
             </div>
 
-            <!-- CARGA MANUAL DE BASE DE CLIENTES (Solo si falla GitHub) -->
             <div id="cargaDbConfig">
                 <label><b>Base Maestra Clientes:</b></label><br>
                 <input type="file" id="dbFile" accept=".xlsx, .xls, .csv"><br><br>
@@ -163,20 +170,19 @@
     let rutasDiaRaw = [];
     
     let historialServicios = []; 
-    let rutasAprendidas = {}; // NUEVO: Memoria de rutas nuevas asignadas manualmente durante el día
+    let rutasAprendidas = {}; 
     
     let colRuta = 0;
     let colParada = 1;
     let colParId = -1;
     let colCodigoCliente = -1;
 
-    // INICIALIZACIÓN: Intenta leer desde GitHub y luego desde LocalStorage
+    // INICIALIZACIÓN
     window.onload = async function() {
         document.getElementById('fileStatus').innerHTML = "Buscando base en servidor...";
         let cargadoDesdeServer = await intentarCargaDesdeServidor();
         
         if (!cargadoDesdeServer) {
-            // Si falla el servidor (ej. corriendo en PC local sin el archivo), busca en memoria local
             let memoriaGuardada = localStorage.getItem('baseClientesTomser');
             if (memoriaGuardada) {
                 baseClientes = JSON.parse(memoriaGuardada);
@@ -189,10 +195,8 @@
         }
     };
 
-    // FUNCION PARA LEER EL EXCEL DIRECTO DEL SERVIDOR GITHUB
     async function intentarCargaDesdeServidor() {
         try {
-            // Busca el archivo 'base_clientes.xlsx' en la misma carpeta donde esté alojado el HTML
             const response = await fetch('./base_clientes.xlsx');
             if (!response.ok) return false;
 
@@ -207,7 +211,6 @@
             mostrarPanelExito(cant, "🌐 Base Cargada desde GitHub");
             document.getElementById('fileStatus').innerHTML = "✓ Base Clientes (GitHub) | ";
             
-            // Ocultar botón de borrar memoria porque viene directo del servidor
             document.getElementById('btnBorrarMemoria').style.display = 'none';
             return true;
         } catch (error) {
@@ -216,7 +219,6 @@
         }
     }
 
-    // Procesa el JSON y arma el diccionario de clientes
     function procesarJsonClientes(json) {
         baseClientes = {};
         json.forEach(fila => {
@@ -229,14 +231,13 @@
         });
     }
 
-    // Actualiza la Interfaz cuando la base se carga exitosamente
     function mostrarPanelExito(cantidad, mensaje) {
         document.getElementById('memoriaDbConfig').style.display = 'block';
         document.getElementById('textoMemoria').innerHTML = `${mensaje} (${cantidad} paradas)`;
         document.getElementById('cargaDbConfig').style.display = 'none';
     }
 
-    // 1. Cargar Base Maestra MANUALMENTE (Por si no usan GitHub un día)
+    // 1. Cargar Base Maestra MANUALMENTE
     document.getElementById('dbFile').addEventListener('change', function(e) {
         const reader = new FileReader();
         reader.onload = function(event) {
@@ -246,7 +247,6 @@
             
             procesarJsonClientes(json);
             
-            // GUARDAR EN MEMORIA DEL NAVEGADOR
             localStorage.setItem('baseClientesTomser', JSON.stringify(baseClientes));
             
             let cant = Object.keys(baseClientes).length;
@@ -257,7 +257,6 @@
         reader.readAsArrayBuffer(e.target.files[0]);
     });
 
-    // FUNCIÓN PARA BORRAR LA MEMORIA MANUAL
     function borrarMemoria() {
         if(confirm("¿Estás seguro que querés borrar la base de clientes guardada en este navegador?")) {
             localStorage.removeItem('baseClientesTomser');
@@ -278,7 +277,6 @@
             
             cargaBaseRutas = {};
             
-            // Detección automática de columnas
             for (let i = 0; i < 25; i++) {
                 if (rutasDiaRaw[i]) {
                     let filaStr = rutasDiaRaw[i].map(celda => String(celda || "").toUpperCase().trim());
@@ -298,12 +296,10 @@
                 }
             }
 
-            // Conteo de paradas fijas
             for (let i = 10; i < rutasDiaRaw.length; i++) {
                 const idRuta = String(rutasDiaRaw[i][colRuta] || "").trim();
                 const paradaNum = String(rutasDiaRaw[i][colParada] || "").trim(); 
                 
-                // Contabiliza solo si la parada es un número y OMITIMOS 00000
                 if (idRuta && idRuta !== "Ruta" && idRuta !== "00000" && paradaNum && !isNaN(paradaNum)) {
                     cargaBaseRutas[idRuta] = (cargaBaseRutas[idRuta] || 0) + 1;
                 }
@@ -312,6 +308,48 @@
         };
         reader.readAsArrayBuffer(e.target.files[0]);
     });
+
+    // FUNCIÓN PARA ACTUALIZAR CARGA Y ESTADO DINÁMICAMENTE CUANDO SE EDITA LA RUTA
+    window.actualizarFilaInfo = function(inputElement) {
+        let fila = inputElement.closest('tr');
+        let rutaCorta = inputElement.value.trim().toUpperCase();
+        
+        let fullRutaId = rutaCorta;
+        for (let r in cargaBaseRutas) {
+            if (r.endsWith(rutaCorta)) {
+                fullRutaId = r;
+                break;
+            }
+        }
+
+        const totalParadasBase = cargaBaseRutas[fullRutaId] || 0;
+
+        let estadoHtml = `<span class="status-ok">OPERATIVA</span>`;
+        if (totalParadasBase > 20) {
+            estadoHtml = `<span class="status-critico">SATURADA (+20)</span>`;
+        } else if (totalParadasBase > 15) {
+            estadoHtml = `<span style="color:var(--naranja); font-weight:bold;">CARGA ALTA</span>`;
+        } else if (totalParadasBase === 0 && rutaCorta !== "") {
+            estadoHtml = `<span style="color:var(--azul-brinks); font-weight:bold;">NUEVA UNIDAD</span>`;
+        } else if (rutaCorta === "") {
+            estadoHtml = `<span style="color:var(--rojo); font-weight:bold;">SIN ASIGNAR</span>`;
+        }
+
+        let tdCarga = fila.querySelector('.td-carga');
+        let tdEstado = fila.querySelector('.td-estado');
+
+        if (tdCarga) tdCarga.innerHTML = totalParadasBase;
+        if (tdEstado) tdEstado.innerHTML = estadoHtml;
+    }
+
+    window.seleccionarSugerencia = function(badgeElement, rutaCorta) {
+        let fila = badgeElement.closest('tr');
+        let input = fila.querySelector('.input-ruta');
+        if (input && !input.disabled) {
+            input.value = rutaCorta;
+            actualizarFilaInfo(input);
+        }
+    }
 
     // 3. Procesar Asignaciones
     function procesar() {
@@ -326,7 +364,6 @@
         }
 
         codigos.forEach(cod => {
-            // VERIFICAR SI YA ESTÁ EN EL HISTORIAL
             if (historialServicios.includes(cod)) {
                 let filaHtml = `<td><b style="font-size:16px; color:#999; text-decoration: line-through;">${cod}</b></td>`;
                 filaHtml += `<td colspan="5" style="color:var(--naranja); font-weight:bold;">⚠️ Este servicio ya fue pasado hoy (Ver Historial)</td>`;
@@ -342,20 +379,22 @@
             if (cliente) {
                 filaHtml += `<td style="text-align:left;">${cliente.full}</td>`;
                 
-                let rutaId = "S/D";
+                let rutasSugeridasUnicas = new Set();
                 let esProgramado = false;
                 let numParadaProgramada = ""; 
+                let rutaId = "S/D";
                 
-                // 1. Verificar si el código ya está PROGRAMADO en el Diario Tomser
+                // 1. Verificar si está PROGRAMADO
                 for (let i = 10; i < rutasDiaRaw.length; i++) {
                     let currentRuta = String(rutasDiaRaw[i][colRuta] || "").trim();
-                    if (currentRuta === "00000") continue; 
+                    if (currentRuta === "00000" || currentRuta === "Ruta" || !currentRuta) continue; 
 
                     let pId = colParId >= 0 ? String(rutasDiaRaw[i][colParId] || "").trim() : "";
                     let cId = colCodigoCliente >= 0 ? String(rutasDiaRaw[i][colCodigoCliente] || "").trim() : "";
                     
                     if (pId === cod || cId === cod) {
                         rutaId = currentRuta;
+                        rutasSugeridasUnicas.add(currentRuta.slice(-3));
                         esProgramado = true;
                         numParadaProgramada = String(rutasDiaRaw[i][colParada] || "").trim();
                         break;
@@ -363,6 +402,7 @@
                         let existeEnFila = rutasDiaRaw[i].some(celda => String(celda || "").trim() === cod);
                         if (existeEnFila) {
                             rutaId = currentRuta;
+                            rutasSugeridasUnicas.add(currentRuta.slice(-3));
                             esProgramado = true;
                             numParadaProgramada = String(rutasDiaRaw[i][colParada] || "").trim();
                             break;
@@ -370,66 +410,84 @@
                     }
                 }
 
-                // 2. NUEVO: Si no está programado, fijarse si YA LE ASIGNASTE una ruta a esa zona hoy
+                // 2. Si no es programado, agregar la aprendida (si hay) como primera sugerencia
                 if (!esProgramado && rutasAprendidas[cliente.loc]) {
-                    rutaId = rutasAprendidas[cliente.loc];
+                    rutasSugeridasUnicas.add(rutasAprendidas[cliente.loc].slice(-3));
                 }
 
-                // 3. Si no está en la memoria nueva, buscar coincidencia de localidad en la ruta del día
-                if (!esProgramado && rutaId === "S/D") {
+                // 3. Buscar TODAS las rutas en la localidad
+                if (!esProgramado) {
                     for (let i = 10; i < rutasDiaRaw.length; i++) {
                         let currentRuta = String(rutasDiaRaw[i][colRuta] || "").trim();
-                        if (currentRuta === "00000") continue; 
+                        if (currentRuta === "00000" || currentRuta === "Ruta" || !currentRuta) continue; 
 
                         let contenido = rutasDiaRaw[i].join(" ").toLowerCase();
                         if (cliente.loc !== "" && contenido.includes(cliente.loc)) {
-                            rutaId = currentRuta; 
-                            break;
+                            rutasSugeridasUnicas.add(currentRuta.slice(-3));
                         }
                     }
                 }
 
-                if (rutaId !== "S/D" && rutaId !== "undefined" && rutaId !== "") {
-                    // Muestra solo la cantidad de paradas fijas
-                    const totalParadasBase = cargaBaseRutas[rutaId] || 0;
+                let arraySugerencias = Array.from(rutasSugeridasUnicas).slice(0, 4); // Tomar hasta 4 opciones
 
-                    let estadoHtml = `<span class="status-ok">OPERATIVA</span>`;
-                    if (totalParadasBase > 20) {
-                        estadoHtml = `<span class="status-critico">SATURADA (+20)</span>`;
-                    } else if (totalParadasBase > 15) {
-                        estadoHtml = `<span style="color:var(--naranja); font-weight:bold;">CARGA ALTA</span>`;
+                if (!esProgramado && arraySugerencias.length > 0) {
+                    rutaId = arraySugerencias[0]; // La primera es la principal sugerida
+                }
+
+                let rutaCorta = (rutaId !== "S/D" && rutaId !== "") ? rutaId.slice(-3) : "";
+
+                // Generar HTML de Etiquetas sugeridas
+                let sugerenciasHtml = "";
+                if (arraySugerencias.length > 1 && !esProgramado) {
+                    sugerenciasHtml += `<div class="sugerencias-container">`;
+                    arraySugerencias.forEach(rAlt => {
+                        sugerenciasHtml += `<span class="badge-sugerencia" title="Clic para seleccionar esta unidad" onclick="seleccionarSugerencia(this, '${rAlt}')">${rAlt}</span>`;
+                    });
+                    sugerenciasHtml += `</div>`;
+                }
+
+                // CALCULAR DATOS INICIALES PARA MOSTRAR
+                let fullRutaParaCarga = rutaId;
+                if (!esProgramado) {
+                    for (let r in cargaBaseRutas) {
+                        if (r.endsWith(rutaCorta)) { fullRutaParaCarga = r; break; }
                     }
+                }
+                const totalParadasBase = cargaBaseRutas[fullRutaParaCarga] || 0;
 
-                    // Extraer solo los últimos 3 dígitos de la ruta
-                    let rutaCorta = rutaId.slice(-3);
-                    
-                    // Etiquetas de estado
-                    let etiquetaProg = esProgramado 
+                let estadoHtml = `<span class="status-ok">OPERATIVA</span>`;
+                if (rutaId === "S/D" || rutaId === "") {
+                    estadoHtml = `<span style="color:var(--rojo); font-weight:bold;">SIN UNIDAD CERCANA</span>`;
+                } else if (totalParadasBase > 20) {
+                    estadoHtml = `<span class="status-critico">SATURADA (+20)</span>`;
+                } else if (totalParadasBase > 15) {
+                    estadoHtml = `<span style="color:var(--naranja); font-weight:bold;">CARGA ALTA</span>`;
+                } else if (totalParadasBase === 0 && rutaCorta !== "") {
+                    estadoHtml = `<span style="color:var(--azul-brinks); font-weight:bold;">NUEVA UNIDAD</span>`;
+                }
+
+                // Etiquetas de estado de programación
+                let etiquetaProg = "";
+                if (rutaId !== "S/D" && rutaId !== "") {
+                    etiquetaProg = esProgramado 
                         ? `<br><span class="badge-prog">PROGRAMADO (Parada ${numParadaProgramada})</span>` 
                         : `<br><span class="badge-noprog">NO PROGRAMADO</span>`;
-
-                    filaHtml += `<td>
-                        <input type="text" class="brinks-tag input-ruta" value="${rutaCorta}" maxlength="5" title="Podés modificar esta ruta si lo asignaste a otra unidad">
-                        ${etiquetaProg}
-                    </td>`;
-                    filaHtml += `<td style="font-size:20px; font-weight:900; color:var(--azul-brinks);">${totalParadasBase}</td>`;
-                    filaHtml += `<td>${estadoHtml}</td>`;
-                    
-                    let clienteLocLimpio = (cliente.nombre || "S/D") + " - " + cliente.loc;
-                    filaHtml += `<td><button class="btn-guardar" onclick="guardarEnHistorial('${cod}', '${clienteLocLimpio.replace(/'/g, "\\'")}', this)">Confirmar y Guardar</button></td>`;
                 } else {
-                    let etiquetaProg = `<br><span class="badge-noprog" style="background:#ffebee; border-color:#ffcdd2; color:#c62828;">SIN ASIGNAR</span>`;
-                    
-                    filaHtml += `<td>
-                        <input type="text" class="brinks-tag input-ruta" value="" placeholder="Ruta" maxlength="5" title="Ingrese la ruta asignada manualmente">
-                        ${etiquetaProg}
-                    </td>`;
-                    filaHtml += `<td style="font-size:20px; font-weight:900; color:#ccc;">0</td>`;
-                    filaHtml += `<td><span style="color:var(--rojo); font-weight:bold;">SIN UNIDAD CERCANA</span></td>`;
-                    
-                    let clienteLocLimpio = (cliente.nombre || "S/D") + " - " + cliente.loc;
-                    filaHtml += `<td><button class="btn-guardar" style="background:var(--azul-brinks);" onclick="guardarEnHistorial('${cod}', '${clienteLocLimpio.replace(/'/g, "\\'")}', this)">Ingresar y Guardar</button></td>`;
+                    etiquetaProg = `<br><span class="badge-noprog" style="background:#ffebee; border-color:#ffcdd2; color:#c62828;">SIN ASIGNAR</span>`;
                 }
+
+                // ARMAR FILA
+                let inputHtml = `<input type="text" class="brinks-tag input-ruta" value="${rutaCorta}" placeholder="Ruta" maxlength="5" title="Podés modificar esta ruta si lo asignaste a otra unidad" oninput="actualizarFilaInfo(this)">`;
+                
+                filaHtml += `<td>${inputHtml}${sugerenciasHtml}${etiquetaProg}</td>`;
+                filaHtml += `<td class="td-carga" style="font-size:20px; font-weight:900; color:var(--azul-brinks);">${rutaCorta === "" ? "0" : totalParadasBase}</td>`;
+                filaHtml += `<td class="td-estado">${estadoHtml}</td>`;
+                
+                let clienteLocLimpio = (cliente.nombre || "S/D") + " - " + cliente.loc;
+                let textoBoton = (rutaId !== "S/D" && rutaId !== "") ? "Confirmar y Guardar" : "Ingresar y Guardar";
+                let colorBoton = (rutaId !== "S/D" && rutaId !== "") ? "" : "background:var(--azul-brinks);";
+                
+                filaHtml += `<td><button class="btn-guardar" style="${colorBoton}" onclick="guardarEnHistorial('${cod}', '${clienteLocLimpio.replace(/'/g, "\\'")}', this)">${textoBoton}</button></td>`;
             } else {
                 filaHtml += `<td colspan="4" style="color:red; font-weight:bold;">El código ${cod} no figura en la base maestra</td>`;
                 filaHtml += `<td>-</td>`;
@@ -441,11 +499,9 @@
         });
     }
 
-    // Guardar en Historial
     function guardarEnHistorial(cod, clienteFull, btnElement) {
         let filaEvaluacion = btnElement.closest('tr');
         
-        // OBTENER LA RUTA FINAL DESDE EL CAMPO EDITABLE
         let inputElement = filaEvaluacion.querySelector('.input-ruta');
         let rutaAsignadaFinal = inputElement ? inputElement.value.trim() : "";
         
@@ -455,7 +511,6 @@
             return;
         }
 
-        // NUEVO: El sistema "aprende" que esta ruta trabaja en la localidad de este cliente
         if (baseClientes[cod] && baseClientes[cod].loc) {
             rutasAprendidas[baseClientes[cod].loc] = rutaAsignadaFinal;
         }
@@ -484,12 +539,16 @@
 
         filaEvaluacion.style.opacity = '0.3';
         if(inputElement) inputElement.disabled = true; 
+        
+        // Deshabilitar también las sugerencias clickables
+        let sugerencias = filaEvaluacion.querySelectorAll('.badge-sugerencia');
+        sugerencias.forEach(s => { s.onclick = null; s.style.cursor = 'default'; s.style.opacity = '0.5'; });
+
         btnElement.innerText = "✓ Guardado";
         btnElement.disabled = true;
         btnElement.style.background = "#ccc";
     }
 
-    // Eliminar del Historial
     function eliminarDelHistorial(cod, btnElement) {
         historialServicios = historialServicios.filter(item => item !== cod);
         
