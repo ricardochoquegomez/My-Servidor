@@ -78,6 +78,10 @@
         .sug-1 { background: #fbc02d; color: #333; border-color: #f57f17; } /* Amarillo - Probable */
         .sug-2 { background: #f57c00; color: white; border-color: #e65100; } /* Naranja - Menos probable */
         .sug-3 { background: #d32f2f; color: white; border-color: #b71c1c; } /* Rojo - Lejana */
+        
+        /* ESTILO NUEVO PARA RUTAS DE REFUERZO GLOBAL (Radio Amplio) */
+        .sug-refuerzo { background: #673ab7; color: white; border-color: #512da8; } 
+        .sug-refuerzo:hover { background: #5e35b1; }
 
         /* ESTILOS PARA PROGRAMADO / NO PROGRAMADO */
         .badge-prog { background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; border: 1px solid #c8e6c9; display: inline-block; margin-top: 6px; }
@@ -182,6 +186,13 @@
     let colParId = -1;
     let colCodigoCliente = -1;
 
+    // DEFINICIÓN DE RUTAS DE REFUERZO (Radio Amplio)
+    const RUTAS_REFUERZO = ['901', '902', '903', 'RE1', 'RE2', 'RE3', 'RE4', 'RE5', 'RE6'];
+    // DEFINICIÓN DE RUTAS A IGNORAR TOTALMENTE
+    const RUTAS_IGNORADAS = ['00000', '20000', '00001', '00002'];
+    // DEFINICIÓN DE PARADAS A IGNORAR EN EL CONTEO
+    const PARADAS_IGNORADAS = ['00000', '20000', '00001', '00002', '0', '1', '2'];
+
     // INICIALIZACIÓN
     window.onload = async function() {
         document.getElementById('fileStatus').innerHTML = "Buscando base en servidor...";
@@ -272,7 +283,7 @@
         }
     }
 
-    // 2. Cargar Diario Tomser con detección de columnas
+    // 2. Cargar Diario Tomser
     document.getElementById('rutaFile').addEventListener('change', function(e) {
         const reader = new FileReader();
         reader.onload = function(event) {
@@ -305,7 +316,8 @@
                 const idRuta = String(rutasDiaRaw[i][colRuta] || "").trim();
                 const paradaNum = String(rutasDiaRaw[i][colParada] || "").trim(); 
                 
-                if (idRuta && idRuta !== "Ruta" && idRuta !== "00000" && paradaNum && !isNaN(paradaNum)) {
+                // Ignorar también las paradas comodines para que no sumen a la carga de trabajo
+                if (idRuta && idRuta !== "Ruta" && !RUTAS_IGNORADAS.includes(idRuta) && paradaNum && !isNaN(paradaNum) && !PARADAS_IGNORADAS.includes(paradaNum)) {
                     cargaBaseRutas[idRuta] = (cargaBaseRutas[idRuta] || 0) + 1;
                 }
             }
@@ -314,14 +326,14 @@
         reader.readAsArrayBuffer(e.target.files[0]);
     });
 
-    // FUNCIÓN PARA ACTUALIZAR CARGA Y ESTADO DINÁMICAMENTE CUANDO SE EDITA LA RUTA
+    // FUNCIÓN PARA ACTUALIZAR CARGA DINÁMICAMENTE
     window.actualizarFilaInfo = function(inputElement) {
         let fila = inputElement.closest('tr');
         let rutaCorta = inputElement.value.trim().toUpperCase();
         
         let fullRutaId = rutaCorta;
         for (let r in cargaBaseRutas) {
-            if (r.endsWith(rutaCorta)) {
+            if (r.toUpperCase().endsWith(rutaCorta)) {
                 fullRutaId = r;
                 break;
             }
@@ -345,6 +357,18 @@
 
         if (tdCarga) tdCarga.innerHTML = totalParadasBase;
         if (tdEstado) tdEstado.innerHTML = estadoHtml;
+
+        // Actualizar botón para que cambie de azul a verde si se tipeó algo
+        let btnGuardar = fila.querySelector('.btn-guardar');
+        if (btnGuardar) {
+            if (rutaCorta !== "") {
+                btnGuardar.innerText = "Confirmar y Guardar";
+                btnGuardar.style.background = ""; 
+            } else {
+                btnGuardar.innerText = "Ingresar y Guardar";
+                btnGuardar.style.background = "var(--azul-brinks)";
+            }
+        }
     }
 
     window.seleccionarSugerencia = function(badgeElement, rutaCorta) {
@@ -368,6 +392,17 @@
             return;
         }
 
+        // DETECTAR REFUERZOS ACTIVOS EN EL DÍA (Radio Amplio)
+        let activeRefuerzos = new Set();
+        for (let r in cargaBaseRutas) {
+            let rTrimmed = String(r).trim().toUpperCase();
+            RUTAS_REFUERZO.forEach(ref => { if (rTrimmed.endsWith(ref)) activeRefuerzos.add(ref); });
+        }
+        Object.values(rutasAprendidas).forEach(r => {
+            let rTrimmed = String(r).trim().toUpperCase();
+            RUTAS_REFUERZO.forEach(ref => { if (rTrimmed.endsWith(ref)) activeRefuerzos.add(ref); });
+        });
+
         codigos.forEach(cod => {
             if (historialServicios.includes(cod)) {
                 let filaHtml = `<td><b style="font-size:16px; color:#999; text-decoration: line-through;">${cod}</b></td>`;
@@ -385,7 +420,7 @@
                 filaHtml += `<td style="text-align:left;">${cliente.full}</td>`;
                 
                 let rutasSugeridasUnicas = new Set();
-                let rutasFrecuencia = {}; // CONTADOR DE TRABAJO EN LA ZONA
+                let rutasFrecuencia = {}; 
                 let esProgramado = false;
                 let numParadaProgramada = ""; 
                 let rutaId = "S/D";
@@ -393,14 +428,14 @@
                 // 1. Verificar si está PROGRAMADO
                 for (let i = 10; i < rutasDiaRaw.length; i++) {
                     let currentRuta = String(rutasDiaRaw[i][colRuta] || "").trim();
-                    if (currentRuta === "00000" || currentRuta === "Ruta" || !currentRuta) continue; 
+                    if (RUTAS_IGNORADAS.includes(currentRuta) || currentRuta === "Ruta" || !currentRuta) continue; 
 
                     let pId = colParId >= 0 ? String(rutasDiaRaw[i][colParId] || "").trim() : "";
                     let cId = colCodigoCliente >= 0 ? String(rutasDiaRaw[i][colCodigoCliente] || "").trim() : "";
                     
                     if (pId === cod || cId === cod) {
                         rutaId = currentRuta;
-                        rutasSugeridasUnicas.add(currentRuta.slice(-3));
+                        rutasSugeridasUnicas.add(currentRuta.slice(-3).toUpperCase());
                         esProgramado = true;
                         numParadaProgramada = String(rutasDiaRaw[i][colParada] || "").trim();
                         break;
@@ -408,7 +443,7 @@
                         let existeEnFila = rutasDiaRaw[i].some(celda => String(celda || "").trim() === cod);
                         if (existeEnFila) {
                             rutaId = currentRuta;
-                            rutasSugeridasUnicas.add(currentRuta.slice(-3));
+                            rutasSugeridasUnicas.add(currentRuta.slice(-3).toUpperCase());
                             esProgramado = true;
                             numParadaProgramada = String(rutasDiaRaw[i][colParada] || "").trim();
                             break;
@@ -416,58 +451,90 @@
                     }
                 }
 
-                // 2. Si no es programado, agregar la aprendida (si hay) como primera sugerencia
+                // 2. Si no es programado, agregar la aprendida normalmente para esta zona local
                 if (!esProgramado && rutasAprendidas[cliente.loc]) {
-                    let rutaApr = rutasAprendidas[cliente.loc].slice(-3);
+                    let rutaApr = rutasAprendidas[cliente.loc].slice(-3).toUpperCase();
                     rutasSugeridasUnicas.add(rutaApr);
-                    rutasFrecuencia[rutaApr] = 1000; // Prioridad máxima por ser asignación manual reciente
+                    rutasFrecuencia[rutaApr] = 1000; 
                 }
 
-                // 3. Buscar TODAS las rutas en la localidad y CONTAR su trabajo
+                // 3. Buscar TODAS las rutas en la localidad y contar trabajo
                 if (!esProgramado) {
                     for (let i = 10; i < rutasDiaRaw.length; i++) {
                         let currentRuta = String(rutasDiaRaw[i][colRuta] || "").trim();
-                        if (currentRuta === "00000" || currentRuta === "Ruta" || !currentRuta) continue; 
+                        let currentParada = String(rutasDiaRaw[i][colParada] || "").trim();
+
+                        if (RUTAS_IGNORADAS.includes(currentRuta) || currentRuta === "Ruta" || !currentRuta) continue; 
+                        
+                        // Ignorar paradas administrativas para no dar prioridad falsa a una ruta
+                        if (PARADAS_IGNORADAS.includes(currentParada)) continue;
 
                         let contenido = rutasDiaRaw[i].join(" ").toLowerCase();
                         if (cliente.loc !== "" && contenido.includes(cliente.loc)) {
-                            let rCorta = currentRuta.slice(-3);
+                            let rCorta = currentRuta.slice(-3).toUpperCase();
                             rutasSugeridasUnicas.add(rCorta);
-                            rutasFrecuencia[rCorta] = (rutasFrecuencia[rCorta] || 0) + 1; // Suma 1 parada en la zona
+                            rutasFrecuencia[rCorta] = (rutasFrecuencia[rCorta] || 0) + 1;
                         }
                     }
                 }
 
-                // ORDENAR LAS RUTAS SEGÚN LA CANTIDAD DE TRABAJO EN LA ZONA
+                // ORDENAR LAS RUTAS NORMALES
                 let arraySugerencias = Array.from(rutasSugeridasUnicas);
                 arraySugerencias.sort((a, b) => (rutasFrecuencia[b] || 0) - (rutasFrecuencia[a] || 0));
-                arraySugerencias = arraySugerencias.slice(0, 4); // Tomar hasta 4 opciones
-
-                if (!esProgramado && arraySugerencias.length > 0) {
-                    rutaId = arraySugerencias[0]; // La primera es la principal sugerida
+                
+                // Separar top 3 normales
+                let normales = arraySugerencias.filter(r => !RUTAS_REFUERZO.includes(r));
+                normales = normales.slice(0, 3); 
+                
+                // Agregar los Refuerzos Activos (Globales) al final de la lista de sugerencias
+                arraySugerencias = [...normales];
+                if (!esProgramado) {
+                    activeRefuerzos.forEach(ref => {
+                        if (!arraySugerencias.includes(ref)) arraySugerencias.push(ref);
+                    });
                 }
 
-                let rutaCorta = (rutaId !== "S/D" && rutaId !== "") ? rutaId.slice(-3) : "";
+                if (!esProgramado && arraySugerencias.length > 0) {
+                    rutaId = arraySugerencias[0]; 
+                }
 
-                // Generar HTML de Etiquetas sugeridas CON COLORES DE PRIORIDAD
+                let rutaCorta = (rutaId !== "S/D" && rutaId !== "") ? rutaId.slice(-3).toUpperCase() : "";
+
+                // Generar HTML de Etiquetas Sugeridas
                 let sugerenciasHtml = "";
                 if (arraySugerencias.length > 1 && !esProgramado) {
                     sugerenciasHtml += `<div class="sugerencias-container">`;
                     let clasesColores = ['sug-0', 'sug-1', 'sug-2', 'sug-3'];
+                    let normalIndex = 0;
                     
-                    arraySugerencias.forEach((rAlt, index) => {
-                        let claseColor = clasesColores[index] || 'sug-3';
-                        let descPrioridad = rutasFrecuencia[rAlt] >= 1000 ? "Asignada por vos hoy" : `${rutasFrecuencia[rAlt] || 0} paradas en esta zona`;
-                        sugerenciasHtml += `<span class="badge-sugerencia ${claseColor}" title="Prioridad ${index+1}: ${descPrioridad}. Clic para seleccionar." onclick="seleccionarSugerencia(this, '${rAlt}')">${rAlt}</span>`;
+                    arraySugerencias.forEach(rAlt => {
+                        if (RUTAS_REFUERZO.includes(rAlt)) {
+                            // Badge de Refuerzo (Violeta)
+                            sugerenciasHtml += `<span class="badge-sugerencia sug-refuerzo" title="Ruta de Refuerzo (Radio Amplio). Clic para seleccionar." onclick="seleccionarSugerencia(this, '${rAlt}')">${rAlt}</span>`;
+                        } else {
+                            // Badge Normal (Colores Semáforo)
+                            let claseColor = clasesColores[normalIndex] || 'sug-3';
+                            let descPrioridad = rutasFrecuencia[rAlt] >= 1000 ? "Asignada por vos hoy en esta zona" : `${rutasFrecuencia[rAlt] || 0} paradas en esta zona`;
+                            sugerenciasHtml += `<span class="badge-sugerencia ${claseColor}" title="Prioridad ${normalIndex+1}: ${descPrioridad}. Clic para seleccionar." onclick="seleccionarSugerencia(this, '${rAlt}')">${rAlt}</span>`;
+                            normalIndex++;
+                        }
+                    });
+                    sugerenciasHtml += `</div>`;
+                } else if (arraySugerencias.length === 0 && !esProgramado) {
+                    // SI NO HAY NADA EN LA ZONA, OFRECER INICIAR UN REFUERZO
+                    sugerenciasHtml += `<div class="sugerencias-container" style="max-width: 250px;">`;
+                    sugerenciasHtml += `<span style="width:100%; font-size:10px; color:#888; text-align:center; margin-bottom: 2px; font-weight:bold;">Iniciar Nueva Ruta de Refuerzo:</span>`;
+                    RUTAS_REFUERZO.forEach(ref => {
+                        sugerenciasHtml += `<span class="badge-sugerencia sug-refuerzo" style="opacity:0.6; padding: 2px 6px; font-size:10px;" title="Iniciar como Refuerzo ${ref}" onclick="seleccionarSugerencia(this, '${ref}')">${ref}</span>`;
                     });
                     sugerenciasHtml += `</div>`;
                 }
 
-                // CALCULAR DATOS INICIALES PARA MOSTRAR
+                // CÁLCULO DE DATOS
                 let fullRutaParaCarga = rutaId;
                 if (!esProgramado) {
                     for (let r in cargaBaseRutas) {
-                        if (r.endsWith(rutaCorta)) { fullRutaParaCarga = r; break; }
+                        if (r.toUpperCase().endsWith(rutaCorta)) { fullRutaParaCarga = r; break; }
                     }
                 }
                 const totalParadasBase = cargaBaseRutas[fullRutaParaCarga] || 0;
@@ -483,7 +550,7 @@
                     estadoHtml = `<span style="color:var(--azul-brinks); font-weight:bold;">NUEVA UNIDAD</span>`;
                 }
 
-                // Etiquetas de estado de programación
+                // Etiquetas de estado
                 let etiquetaProg = "";
                 if (rutaId !== "S/D" && rutaId !== "") {
                     etiquetaProg = esProgramado 
@@ -520,14 +587,15 @@
         let filaEvaluacion = btnElement.closest('tr');
         
         let inputElement = filaEvaluacion.querySelector('.input-ruta');
-        let rutaAsignadaFinal = inputElement ? inputElement.value.trim() : "";
+        let rutaAsignadaFinal = inputElement ? inputElement.value.trim().toUpperCase() : "";
         
-        if (!rutaAsignadaFinal || rutaAsignadaFinal.toUpperCase() === "S/D") {
+        if (!rutaAsignadaFinal || rutaAsignadaFinal === "S/D") {
             alert("Por favor, ingrese un número de ruta válido en el casillero azul antes de guardar.");
             if(inputElement) inputElement.focus();
             return;
         }
 
+        // GUARDAR APRENDIZAJE DE ZONA (Si es una ruta normal)
         if (baseClientes[cod] && baseClientes[cod].loc) {
             rutasAprendidas[baseClientes[cod].loc] = rutaAsignadaFinal;
         }
@@ -541,12 +609,15 @@
         const ahora = new Date();
         const horaStr = ahora.getHours().toString().padStart(2, '0') + ':' + ahora.getMinutes().toString().padStart(2, '0');
 
+        // Si la ruta guardada es de refuerzo, ponerle la chapita violeta en el historial también
+        let colorHistorial = RUTAS_REFUERZO.includes(rutaAsignadaFinal) ? "background:#673ab7; border-color:#512da8;" : "background:var(--verde); border-color:#145a32;";
+
         tr.innerHTML = `
             <td style="color:#666; font-size:12px; font-weight:bold;">${horaStr}</td>
             <td><b style="font-size:16px;">${cod}</b></td>
             <td style="text-align:left; font-size:13px;">${clienteFull}</td>
             <td>
-                <span class="brinks-tag" style="background:var(--verde); border-color:#145a32;">${rutaAsignadaFinal}</span>
+                <span class="brinks-tag" style="${colorHistorial}">${rutaAsignadaFinal}</span>
             </td>
             <td><button class="btn-eliminar" onclick="eliminarDelHistorial('${cod}', this)">Deshacer</button></td>
         `;
@@ -557,7 +628,6 @@
         filaEvaluacion.style.opacity = '0.3';
         if(inputElement) inputElement.disabled = true; 
         
-        // Deshabilitar también las sugerencias clickables
         let sugerencias = filaEvaluacion.querySelectorAll('.badge-sugerencia');
         sugerencias.forEach(s => { s.onclick = null; s.style.cursor = 'default'; s.style.opacity = '0.5'; });
 
