@@ -163,6 +163,7 @@
     let rutasDiaRaw = [];
     
     let historialServicios = []; 
+    let rutasAprendidas = {}; // NUEVO: Memoria de rutas nuevas asignadas manualmente durante el día
     
     let colRuta = 0;
     let colParada = 1;
@@ -369,8 +370,13 @@
                     }
                 }
 
-                // 2. Si no está programado, buscar coincidencia de localidad en la ruta del día
-                if (!esProgramado) {
+                // 2. NUEVO: Si no está programado, fijarse si YA LE ASIGNASTE una ruta a esa zona hoy
+                if (!esProgramado && rutasAprendidas[cliente.loc]) {
+                    rutaId = rutasAprendidas[cliente.loc];
+                }
+
+                // 3. Si no está en la memoria nueva, buscar coincidencia de localidad en la ruta del día
+                if (!esProgramado && rutaId === "S/D") {
                     for (let i = 10; i < rutasDiaRaw.length; i++) {
                         let currentRuta = String(rutasDiaRaw[i][colRuta] || "").trim();
                         if (currentRuta === "00000") continue; 
@@ -447,6 +453,11 @@
             alert("Por favor, ingrese un número de ruta válido en el casillero azul antes de guardar.");
             if(inputElement) inputElement.focus();
             return;
+        }
+
+        // NUEVO: El sistema "aprende" que esta ruta trabaja en la localidad de este cliente
+        if (baseClientes[cod] && baseClientes[cod].loc) {
+            rutasAprendidas[baseClientes[cod].loc] = rutaAsignadaFinal;
         }
 
         document.getElementById('seccionHistorial').style.display = 'block';
